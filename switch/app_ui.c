@@ -63,19 +63,23 @@ void light_on(void)
 {
 	//printf("Light on\n");
     led_on(LED1);
+    led_on(LED2);
+    led_on(LED3);
+    led_on(LED4);
 }
 
 void light_off(void)
 {
 	//printf("Light off\n");
     led_off(LED1);
+    led_off(LED2);
+    led_off(LED3);
+    led_off(LED4);
 }
 
 void light_init(void)
 {
-	//printf("Light Init\n");
-    led_off(LED1);
-
+	light_off();
 }
 
 s32 zclLightTimerCb(void *arg)
@@ -151,9 +155,10 @@ void cmdSendReport()
 #if FIND_AND_BIND_SUPPORT
         dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
 #else
-        dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-        dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
-        dstEpInfo.dstAddr.shortAddr = 0xfffc;
+        dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+        // dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
+        // dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
+        // dstEpInfo.dstAddr.shortAddr = 0xfffc;
 #endif
         //zcl_onOff_toggleCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
     	zclAttrInfo_t *pAttrEntry;
@@ -183,9 +188,10 @@ void cmdToggle(void)
 #if FIND_AND_BIND_SUPPORT
 		dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
 #else
-		dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-		dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
-		dstEpInfo.dstAddr.shortAddr = 0xfffc;
+        dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+        // dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
+        // dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
+        // dstEpInfo.dstAddr.shortAddr = 0xfffc;
 #endif
 		zcl_onOff_toggleCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
 #else
@@ -194,14 +200,34 @@ void cmdToggle(void)
 	}
 }
 
-void cmdMoveOnOff(void)
+void cmdOnOff(u8 state)
+{
+	if(zb_isDeviceJoinedNwk())
+	{
+		epInfo_t dstEpInfo;
+		TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+
+		dstEpInfo.profileId = HA_PROFILE_ID;
+        dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+        // dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
+        // dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
+        // dstEpInfo.dstAddr.shortAddr = 0xfffc;
+        if(state)
+        {
+            zcl_onOff_onCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
+        }
+        else
+        {
+            zcl_onOff_offCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
+        }
+    }
+}
+
+void cmdMoveOnOff(u8 dir)
 {
 	//printf("cmdMoveOnOff\n");
 	if(zb_isDeviceJoinedNwk())
 	{
-		//static u8 lvl = 1;
-		static bool dir = 0;
-
 		epInfo_t dstEpInfo;
 		TL_SETSTRUCTCONTENT(dstEpInfo, 0);
 
@@ -217,25 +243,13 @@ void cmdMoveOnOff(void)
 		//move2Level.level = lvl;
 
 		//zcl_level_move2levelCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE, &move2Level);
-		move_t move;
-
-		move.moveMode = dir;
-		move.rate = 20;
-		move.optPresent = 0;
+		move_t move = {
+            .moveMode = dir,
+            .rate = 20,
+            .optPresent = 0,
+        };
 
 		zcl_level_moveWithOnOffCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE, &move);
-
-		if(dir){
-//                lvl += 50;
-//                if(lvl >= 250){
-            dir = 0;
-//                }
-		}else{
-//                lvl -= 50;
-//                if(lvl <= 1){
-            dir = 1;
-//                }
-		}
 	}
 }
 
@@ -251,9 +265,7 @@ void cmdStopWithOnOff(void)
         dstEpInfo.dstAddr.shortAddr = 0xfffc;
         dstEpInfo.profileId = HA_PROFILE_ID;
 
-        stop_t stop;
-        stop.optPresent = 0;
-
+        stop_t stop = {.optPresent = 0};
         zcl_level_stopWithOnOffCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE, &stop);
     }
 }
@@ -275,90 +287,8 @@ s32 battVoltageCb(void *arg) {
 }
 
 
-/*******************************************************************
- * @brief   Button click detect:
- *          SW1. keep press button1 5s === factory reset
- *          SW1. short press button1   === send report
- *          SW2. keep press button2 3s === send move (1st hold - up, 2nd hold - down)
- *          SW2. short press button2   === send toggle (on release)
- *
- */
-void buttonKeepPressed(u8 btNum) {
-    if(btNum == VK_SW1) {
-    	printf("Button keep pressed SW1\n");
-    	light_blink_stop();
-    	light_blink_start(255, 300, 300);
-        g_switchAppCtx.state = APP_FACTORY_NEW_DOING;
-        zb_factoryReset();
-        //not really sure it needed
-        zb_resetDevice();
-    }else if(btNum == VK_SW2) {
-    	printf("Button keep pressed SW2\n");
-    	light_blink_stop();
-    	light_blink_start(255, 200, 200);
-    	g_switchAppCtx.state = APP_STATE_HOLD_PROCESSED_SW2;
-    	cmdMoveOnOff();
-    }
-}
-
-ev_timer_event_t *brc_toggleEvt = NULL;
-
-s32 brc_toggleCb(void *arg)
-{
-    epInfo_t dstEpInfo;
-    TL_SETSTRUCTCONTENT(dstEpInfo, 0);
-
-    dstEpInfo.dstAddrMode = APS_SHORT_DSTADDR_WITHEP;
-    dstEpInfo.dstEp = TUYA_SWITCH_ENDPOINT;
-    dstEpInfo.dstAddr.shortAddr = 0xfffc;
-    dstEpInfo.profileId = HA_PROFILE_ID;
-
-    zcl_onOff_toggleCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE);
-
-    return 0;
-}
-
-void brc_toggle(void)
-{
-    if(!brc_toggleEvt){
-	//printf("timer3 start \n");
-        brc_toggleEvt = TL_ZB_TIMER_SCHEDULE(brc_toggleCb, NULL, 1000);
-    }else{
-        TL_ZB_TIMER_CANCEL(&brc_toggleEvt);
-    }
-}
-
-void buttonShortPressed(u8 btNum){
-    if(btNum == VK_SW1){
-    	printf("Button short press SW1\n");
-    	light_blink_start(5,300,700);
-    	cmdSendReport();
-    }else if(btNum == VK_SW2){
-    	printf("Button short press SW2\n");
-    	light_blink_start(1, 3000, 0);
-    }
-}
-
-
-void keyScan_keyPressedCB(kb_data_t *kbEvt){
-    //u8 toNormal = 0;
-    u8 keyCode = kbEvt->keycode[0];
-    //static u8 lastKeyCode = 0xff;
-
-    buttonShortPressed(keyCode);
-
-    if(keyCode == VK_SW1){
-        g_switchAppCtx.keyPressedTime = clock_time();
-        g_switchAppCtx.state = APP_FACTORY_NEW_SET_CHECK;
-    }
-    if(keyCode == VK_SW2){
-        g_switchAppCtx.keyPressedTime = clock_time();
-        g_switchAppCtx.state = APP_STATE_HOLD_SW2;
-    }
-}
-
-
 void keyScan_keyReleasedCB(u8 keyCode){
+    /*
 	if((keyCode == VK_SW1) && (g_switchAppCtx.state == APP_FACTORY_NEW_SET_CHECK))
 	{
 		light_blink_stop();
@@ -372,12 +302,63 @@ void keyScan_keyReleasedCB(u8 keyCode){
     	cmdStopWithOnOff();
     	light_blink_stop();
     }
+    */
 
     g_switchAppCtx.state = APP_STATE_NORMAL;
 }
 
+void short_press_net(app_btn_ctx_t* ctx) {
+    light_blink_start(5,300,700);
+    cmdSendReport();
+}
+void hold_start_net(app_btn_ctx_t* ctx) {
+    printf("Net key long hold!\n");
+    light_blink_stop();
+    light_blink_start(255, 300, 300);
+    g_switchAppCtx.state = APP_FACTORY_NEW_DOING;
+    zb_factoryReset();
+    //not really sure it needed
+    // zb_resetDevice();
+}
+void empty_handler(app_btn_ctx_t* ctx) {}
+void short_press_up(app_btn_ctx_t* ctx) { cmdOnOff(1); }
+void short_press_down(app_btn_ctx_t* ctx) { cmdOnOff(0); } 
+void hold_start_up(app_btn_ctx_t* ctx) { cmdMoveOnOff(1); }
+void hold_start_down(app_btn_ctx_t* ctx) { cmdMoveOnOff(0); }
+void hold_done_up_or_down(app_btn_ctx_t* ctx) { cmdStopWithOnOff(); }
+
+void button_check(app_btn_ctx_t* ctx, u8 on, void (*short_press)(app_btn_ctx_t*), void (*hold_start)(app_btn_ctx_t*), void (*hold_done)(app_btn_ctx_t*)) {
+    if(gpio_read(ctx->gpio) == on) {
+        if(ctx->state == BUTTON_RELEASED) {
+            ctx->pressTime = clock_time();
+            ctx->state = BUTTON_PRESSED;
+        }
+        else if(ctx->state == BUTTON_PRESSED && clock_time_exceed(ctx->pressTime, 15*100*1000)){
+            ctx->state = BUTTON_LONG_HOLD;
+            hold_start(ctx);
+        }
+        g_switchAppCtx.keyPressed = 1;
+    } else {
+        if(ctx->state == BUTTON_PRESSED) {
+            short_press(ctx);
+        } else if(ctx->state == BUTTON_LONG_HOLD) {
+            hold_done(ctx);
+        }
+        ctx->state = BUTTON_RELEASED;
+    }
+}
+
 void app_key_handler(void){
-    static u8 valid_keyCode = 0xff;
+    // this gets picked up by the button checks.
+    g_switchAppCtx.keyPressed = 0; 
+    button_check(&g_switchAppCtx.buttons[0], 0, short_press_up, hold_start_up, hold_done_up_or_down);
+    button_check(&g_switchAppCtx.buttons[1], 0, short_press_down, hold_start_down, hold_done_up_or_down);
+    button_check(&g_switchAppCtx.buttons[2], 0, short_press_up, hold_start_up, hold_done_up_or_down);
+    button_check(&g_switchAppCtx.buttons[3], 0, short_press_down, hold_start_down, hold_done_up_or_down);
+    button_check(&g_switchAppCtx.buttonNet , 1, empty_handler, hold_start_net, empty_handler);
+    
+    //static u8 valid_keyCode = 0xff;
+    /*
     if(g_switchAppCtx.state == APP_FACTORY_NEW_SET_CHECK){
         if(clock_time_exceed(g_switchAppCtx.keyPressedTime, 5*1000*1000)){
             buttonKeepPressed(VK_SW1);
@@ -388,19 +369,29 @@ void app_key_handler(void){
             buttonKeepPressed(VK_SW2);
         }
     }
+    */
+   /*
     if(kb_scan_key(0, 1)){//if 1 keyboard update detected
         if(kb_event.cnt){ //number of keys currently pressed
             g_switchAppCtx.keyPressed = 1;
+            for(int i = 0; i < kb_event.cnt; ++i)
+            {
+                u8 keycode = kb_event.keycode[i];
+            }
             keyScan_keyPressedCB(&kb_event);
             if(kb_event.cnt == 1){
-                valid_keyCode = kb_event.keycode[0];
+                // valid_keyCode = kb_event.keycode[0];
             }
-        }else{
-            keyScan_keyReleasedCB(valid_keyCode);
-            valid_keyCode = 0xff;
+        } else {
+            // keyScan_keyReleasedCB(valid_keyCode);
+            // valid_keyCode = 0xff;
             g_switchAppCtx.keyPressed = 0;
         }
     }
+    */
+
+    // OLD NET KEY PATH
+    /*
     if(gpio_read(BUTTON1)) {
     	if (g_switchAppCtx.btn1State == BUTTON_RELEASED) { //button pressed 1st cycle for debounce
     		g_switchAppCtx.btn1State = BUTTON_START_DEBOUNCE_PRESS;
@@ -436,7 +427,7 @@ void app_key_handler(void){
             g_switchAppCtx.keyPressed = 0;
     	}
     }
-
+    */
 }
 
 #endif  /* __PROJECT_TL_SWITCH__ */

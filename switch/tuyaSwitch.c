@@ -53,7 +53,32 @@
 /**********************************************************************
  * GLOBAL VARIABLES
  */
-app_ctx_t g_switchAppCtx;
+app_ctx_t g_switchAppCtx = {
+	.buttons[0].gpio = BUTTON1,
+	.buttons[0].idx = VK_SW1,
+	.buttons[0].state = BUTTON_RELEASED,
+	.buttons[0].pressTime = 0,
+
+	.buttons[1].gpio = BUTTON2,
+	.buttons[1].idx = VK_SW2,
+	.buttons[1].state = BUTTON_RELEASED,
+	.buttons[1].pressTime = 0,
+
+	.buttons[2].gpio = BUTTON3,
+	.buttons[2].idx = VK_SW3,
+	.buttons[2].state = BUTTON_RELEASED,
+	.buttons[2].pressTime = 0,
+
+	.buttons[3].gpio = BUTTON4,
+	.buttons[3].idx = VK_SW4,
+	.buttons[3].state = BUTTON_RELEASED,
+	.buttons[3].pressTime = 0,
+
+	.buttonNet.gpio = BUTTON_NET,
+	.buttonNet.idx = VK_NET,
+	.buttonNet.state = BUTTON_RELEASED,
+	.buttonNet.pressTime = 0,
+};
 
 
 #ifdef ZCL_OTA
@@ -82,19 +107,27 @@ const zdo_appIndCb_t appCbLst = {
 	NULL,//tc detects that the frame counter is near limit
 };
 
+#if FIND_AND_BIND_SUPPORT
 
 /**
  *  @brief Definition for BDB finding and binding cluster
  */
 u16 bdb_findBindClusterList[] =
 {
+#if ZCL_ON_OFF_SUPPORT
 	ZCL_CLUSTER_GEN_ON_OFF,
+#endif
+#if ZCL_LEVEL_CTRL_SUPPORT
+	ZCL_CLUSTER_GEN_LEVEL_CONTROL,
+#endif
 };
 
 /**
  *  @brief Definition for BDB finding and binding cluster number
  */
 #define FIND_AND_BIND_CLUSTER_NUM		(sizeof(bdb_findBindClusterList)/sizeof(bdb_findBindClusterList[0]))
+
+#endif
 
 /**
  *  @brief Definition for bdb commissioning setting
@@ -124,13 +157,25 @@ bdb_commissionSetting_t g_bdbCommissionSetting = {
  */
 drv_pm_pinCfg_t g_switchPmCfg[] = {
 	{
-		BUTTON1,//Net Key
+		BUTTON_NET,//Net Key
 		PM_WAKEUP_LEVEL_HIGH
+	},
+	{
+		BUTTON1,
+		PM_WAKEUP_LEVEL_LOW
 	},
 	{
 		BUTTON2,
 		PM_WAKEUP_LEVEL_LOW
-	}
+	},
+	{
+		BUTTON3,
+		PM_WAKEUP_LEVEL_LOW
+	},
+	{
+		BUTTON4,
+		PM_WAKEUP_LEVEL_LOW
+	},
 };
 #endif
 /**********************************************************************
@@ -302,7 +347,9 @@ void user_init(bool isRetention)
 			g_bdbCommissionSetting.linkKey.tcLinkKey.key = g_switchAppCtx.tcLinkKey.key;
 		}
 
+#if FIND_AND_BIND_SUPPORT
 		bdb_findBindMatchClusterSet(FIND_AND_BIND_CLUSTER_NUM, bdb_findBindClusterList);
+#endif
 
 		/* Set default reporting configuration */
 	    u8 reportableChange = 0x00;

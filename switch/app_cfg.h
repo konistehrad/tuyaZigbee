@@ -115,7 +115,7 @@ extern "C" {
 #elif (BOARD == BOARD_B91_DONGLE)
 	#include "board_b91_dongle.h"
 #elif (BOARD == BOARD_8258_TUYA_SWITCH)
-	#include "board_ts0041.h"
+	#include "board_ts0044.h"
 	//#warning "tuya board"
 #endif
 
@@ -156,7 +156,7 @@ extern "C" {
  */
 #define ZCL_ON_OFF_SUPPORT							1
 #define ZCL_LEVEL_CTRL_SUPPORT						1
-#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				1
+#define ZCL_LIGHT_COLOR_CONTROL_SUPPORT				0
 #define ZCL_GROUP_SUPPORT							1
 #define ZCL_OTA_SUPPORT								1
 #define ZCL_POWER_CFG_SUPPORT                       1

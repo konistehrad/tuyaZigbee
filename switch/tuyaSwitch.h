@@ -42,11 +42,17 @@ typedef struct{
 }app_linkKey_info_t;
 
 typedef struct{
+	u32 gpio;
+	u8 idx;
+	u8 state;
+	u32 pressTime;
+} app_btn_ctx_t;
+
+typedef struct{
 	ev_timer_event_t *bdbFBTimerEvt;
 	ev_timer_event_t *timerLedEvt;
 	ev_timer_event_t *timerBattEvt;
     u16 Vbat;		//current voltage
-	u32 keyPressedTime;
 
 	u16 ledOnTime;
 	u16 ledOffTime;
@@ -56,7 +62,8 @@ typedef struct{
 	u8  state;
 
 	u8  keyPressed;
-	u8  btn1State;
+	app_btn_ctx_t  buttons[4];
+	app_btn_ctx_t  buttonNet;
 
 	app_linkKey_info_t tcLinkKey;
 }app_ctx_t;

@@ -2,9 +2,11 @@
 # Debug symbols will be still present in the ELF file
 SET(CMAKE_BUILD_TYPE Release)
 
+SET(SDK_PREFIX "/Users/conrad/linux-src/tl_zigbee_sdk")
+SET(TOOLCHAIN_PREFIX "/Users/conrad/linux-src/tc32")
 # Prepare the toolchain for Telink 8251/8258 microcontroller
 include(cmake/TelinkSDK.cmake)
-
+ 
 # Main project settings
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
@@ -13,6 +15,5 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ENABLE_LANGUAGE(ASM)
 
 ADD_SUBDIRECTORY(cmake_timestamp timestamp)
-ADD_SUBDIRECTORY(IASsensor)
 ADD_SUBDIRECTORY(switch)
-ADD_SUBDIRECTORY(light)
+# ADD_SUBDIRECTORY(light)

@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "app_ui.h": "c",
+        "stack_cfg.h": "c",
+        "tuyaswitch.h": "c",
+        "board_ts0044.h": "c",
+        "zb_common.h": "c",
+        "tl_common.h": "c"
+    }
+}

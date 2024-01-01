@@ -311,9 +311,9 @@ void tuyaSwitch_zclIdentifyCmdHandler(u8 endpoint, u16 srcAddr, u16 identifyTime
 		light_blink_stop();
 	}else{
 		if(!identifyTimerEvt){
-printf("led_blink1 start \n");
+			printf("led_blink1 start \n");
 			light_blink_start(identifyTime, 500, 500);
-printf("timer8 start \n");
+			printf("timer8 start \n");
 			identifyTimerEvt = TL_ZB_TIMER_SCHEDULE(tuyaSwitch_zclIdentifyTimerCb, NULL, 1000);
 		}
 	}
