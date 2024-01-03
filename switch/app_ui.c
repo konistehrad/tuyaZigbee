@@ -34,7 +34,7 @@
 #include "tuyaSwitch.h"
 #include "app_ui.h"
 
-#define MOVE_RATE 85
+#define MOVE_RATE 45
 
 /**********************************************************************
  * LOCAL CONSTANTS
@@ -247,8 +247,8 @@ void cmdMoveOnOff(u8 dir)
 
 		//zcl_level_move2levelCmd(TUYA_SWITCH_ENDPOINT, &dstEpInfo, FALSE, &move2Level);
 		move_t move = {
-            .moveMode = MOVE_RATE,
-            .rate = 80,
+            .moveMode = dir,
+            .rate = MOVE_RATE,
             .optPresent = 0,
         };
 
@@ -311,13 +311,15 @@ void hold_start_down(app_btn_ctx_t* ctx) { cmdMoveOnOff(1); }
 void hold_done_up_or_down(app_btn_ctx_t* ctx) { cmdStopWithOnOff(); }
 
 void button_check(app_btn_ctx_t* ctx, u8 on, void (*short_press)(app_btn_ctx_t*), void (*hold_start)(app_btn_ctx_t*), void (*hold_done)(app_btn_ctx_t*)) {
+    // net button = 7s hold for reset, face button = 1s 
+    u32 holdTime = ctx->idx == VK_NET ? (7*1000*1000) : (1*1000*1000);
     if(gpio_read(ctx->gpio) == on) {
         if(ctx->led != 0) led_on(ctx->led);
         if(ctx->state == BUTTON_RELEASED) {
             ctx->pressTime = clock_time();
             ctx->state = BUTTON_PRESSED;
         }
-        else if(ctx->state == BUTTON_PRESSED && clock_time_exceed(ctx->pressTime, 75*10*1000)){
+        else if(ctx->state == BUTTON_PRESSED && clock_time_exceed(ctx->pressTime, holdTime)){
             ctx->state = BUTTON_LONG_HOLD;
             hold_start(ctx);
         }

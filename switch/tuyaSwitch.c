@@ -244,7 +244,7 @@ void user_app_init(void)
     ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&tuyaSwitch_simpleDesc, &tuyaSwitch_otaInfo, &tuyaSwitch_otaCb);
 #endif
     // battery monitor
-    g_switchAppCtx.timerBattEvt = TL_ZB_TIMER_SCHEDULE(battVoltageCb, NULL, 5000);
+    g_switchAppCtx.timerBattEvt = TL_ZB_TIMER_SCHEDULE(battVoltageCb, NULL, 5 * 1000); //ms
 }
 
 void led_init(void)
@@ -278,7 +278,7 @@ void app_task(void)
 		report_handler();
 #if PM_ENABLE
 		if((!g_switchAppCtx.keyPressed) && (!g_switchAppCtx.timerLedEvt)){ //no key pressed and no led blink active
-			printf("Enter sleep\n");
+			// printf("Enter sleep\n");
 			//ev_timer_event_t *timerEvt = ev_timer_nearestGet();
 				//if(timerEvt){
 					//printf("Timer set for %d, cb %x\n", timerEvt->timeout, timerEvt->cb);
@@ -311,7 +311,7 @@ static void tuyaSwitchSysException(void)
  */
 void user_init(bool isRetention)
 {
-	printf("user init(%d)\n", isRetention);
+	// printf("user init(%d)\n", isRetention);
 	/* Initialize LEDs*/
 	led_init();
 
