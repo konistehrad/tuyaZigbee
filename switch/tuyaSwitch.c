@@ -56,26 +56,31 @@
 app_ctx_t g_switchAppCtx = {
 	.buttons[0].gpio = BUTTON1,
 	.buttons[0].idx = VK_SW1,
+	.buttons[0].led = LED1,
 	.buttons[0].state = BUTTON_RELEASED,
 	.buttons[0].pressTime = 0,
 
 	.buttons[1].gpio = BUTTON2,
 	.buttons[1].idx = VK_SW2,
+	.buttons[1].led = LED2,
 	.buttons[1].state = BUTTON_RELEASED,
 	.buttons[1].pressTime = 0,
 
 	.buttons[2].gpio = BUTTON3,
 	.buttons[2].idx = VK_SW3,
+	.buttons[2].led = LED3,
 	.buttons[2].state = BUTTON_RELEASED,
 	.buttons[2].pressTime = 0,
 
 	.buttons[3].gpio = BUTTON4,
 	.buttons[3].idx = VK_SW4,
+	.buttons[3].led = LED4,
 	.buttons[3].state = BUTTON_RELEASED,
 	.buttons[3].pressTime = 0,
 
 	.buttonNet.gpio = BUTTON_NET,
 	.buttonNet.idx = VK_NET,
+	.buttonNet.led = 0,
 	.buttonNet.state = BUTTON_RELEASED,
 	.buttonNet.pressTime = 0,
 };
@@ -242,8 +247,6 @@ void user_app_init(void)
     g_switchAppCtx.timerBattEvt = TL_ZB_TIMER_SCHEDULE(battVoltageCb, NULL, 5000);
 }
 
-
-
 void led_init(void)
 {
 	light_init();
@@ -275,11 +278,12 @@ void app_task(void)
 		report_handler();
 #if PM_ENABLE
 		if((!g_switchAppCtx.keyPressed) && (!g_switchAppCtx.timerLedEvt)){ //no key pressed and no led blink active
-			//printf("Enter sleep\n");
+			printf("Enter sleep\n");
 			//ev_timer_event_t *timerEvt = ev_timer_nearestGet();
 				//if(timerEvt){
 					//printf("Timer set for %d, cb %x\n", timerEvt->timeout, timerEvt->cb);
 				//}
+			light_off();
 			drv_pm_lowPowerEnter();
 		}
 #endif
@@ -288,7 +292,7 @@ void app_task(void)
 
 static void tuyaSwitchSysException(void)
 {
-#if 1
+#if 0
 	SYSTEM_RESET();
 #else
 	light_on();
@@ -307,7 +311,7 @@ static void tuyaSwitchSysException(void)
  */
 void user_init(bool isRetention)
 {
-	//printf("user init(%d)\n", isRetention);
+	printf("user init(%d)\n", isRetention);
 	/* Initialize LEDs*/
 	led_init();
 
@@ -325,7 +329,8 @@ void user_init(bool isRetention)
 #endif
 
 	if(!isRetention){
-		//light_blink_start(2,500,500);
+		light_blink_start(2,500,500);
+
 		/* Initialize Stack */
 		stack_init();
 

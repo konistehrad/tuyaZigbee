@@ -44,6 +44,7 @@ typedef struct{
 typedef struct{
 	u32 gpio;
 	u8 idx;
+	u32 led;
 	u8 state;
 	u32 pressTime;
 } app_btn_ctx_t;

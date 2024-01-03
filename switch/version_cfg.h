@@ -48,19 +48,19 @@
 #define HARDWARE_REV                        0x01
 
 #ifndef ZCL_BASIC_MFG_NAME
-	#define ZCL_BASIC_MFG_NAME          {6,'D','o','c','L','a','b'}
+	#define ZCL_BASIC_MFG_NAME          {6,'C','o','n','L','a','b'}
 #endif
 #ifndef ZCL_BASIC_MODEL_ID
-	#define ZCL_BASIC_MODEL_ID          {12,'F','i','x','e','d','_','T','S','0','0','4','1'}
+	#define ZCL_BASIC_MODEL_ID          {12,'F','i','x','e','d','_','T','S','0','0','4','4'}
 #endif
 #ifndef ZCL_BASIC_DATE_CODE
-	#define ZCL_BASIC_DATE_CODE    {8,'2','0','2','2','0','5','0','8'}
+	#define ZCL_BASIC_DATE_CODE    {8,'2','0','2','4','0','1','0','2'}
 #endif
 #ifndef ZCL_BASIC_LOC_DESC
 	#define ZCL_BASIC_LOC_DESC     {7,'U','N','K','N','O','W','N'}
 #endif
 #ifndef ZCL_BASIC_BUILD_ID
-	#define ZCL_BASIC_BUILD_ID     {10,'0','1','2','2','0','5','2','0','1','7'}
+	#define ZCL_BASIC_BUILD_ID     {10,'0','1','2','2','0','5','2','0','1','8'}
 #endif
 
 #ifndef ZCL_BASIC_SW_BUILD_ID //max 16 chars
@@ -82,7 +82,7 @@
 //#define    FILE_VERSION                      0xff //for tuya ota
                                               //0x10023001
 
-#define	IMAGE_TYPE							((CHIP_TYPE << 8) | IMAGE_TYPE_SWITCH_0041) //0x3a1
+#define	IMAGE_TYPE							((CHIP_TYPE << 8) | IMAGE_TYPE_SWITCH_0044) //0x3a1
 
 /* Pre-compiled link configuration. */
 #define IS_BOOT_LOADER_IMAGE				0
